@@ -1,0 +1,228 @@
+---
+title: "Wert App database: MySQL schema and DatabaseManager API"
+description: "Reference for the MySQL schema powering Wert App and every method on the DatabaseManager class that handles user and note persistence."
+---
+
+Wert App stores all persistent data in a MySQL database named `registro_usuarios`. The schema contains two tables: `usuarios`, which holds user credentials, and `notas`, which holds per-user notes and references `usuarios` via a foreign key. All database interactions go through the `DatabaseManager` class in `database/db_operations.py`, which accepts an open connection in its constructor and exposes a focused set of methods for registration, authentication, and note management.
+
+## Schema
+
+### `usuarios` table
+
+Stores one row per registered user. The `username` column carries a `UNIQUE` constraint so duplicate registrations are rejected at the database level before the application layer checks.
+
+```sql
+CREATE TABLE IF NOT EXISTS usuarios (
+    id       INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50)  NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+)
+```
+
+| Column     | Type         | Constraints                  |
+|------------|--------------|------------------------------|
+| `id`       | INT          | AUTO_INCREMENT, PRIMARY KEY  |
+| `username` | VARCHAR(50)  | NOT NULL, UNIQUE             |
+| `password` | VARCHAR(255) | NOT NULL                     |
+
+### `notas` table
+
+Stores notes belonging to a user. The `id` column is a foreign key to `usuarios.id`. A composite `UNIQUE(id, titulo)` constraint prevents the same user from saving two notes with identical titles.
+
+```sql
+CREATE TABLE notas (
+    id_nota INT          AUTO_INCREMENT PRIMARY KEY,
+    titulo  VARCHAR(255),
+    nota    TEXT,
+    id      INT,
+    FOREIGN KEY (id) REFERENCES usuarios(id),
+    UNIQUE (id, titulo)
+)
+```
+
+| Column    | Type         | Constraints                          |
+|-----------|--------------|--------------------------------------|
+| `id_nota` | INT          | AUTO_INCREMENT, PRIMARY KEY          |
+| `titulo`  | VARCHAR(255) | —                                    |
+| `nota`    | TEXT         | —                                    |
+| `id`      | INT          | FOREIGN KEY → `usuarios.id`          |
+| —         | —            | UNIQUE (`id`, `titulo`)              |
+
+## DatabaseManager class
+
+`DatabaseManager` is defined in `database/db_operations.py`. It is instantiated once in `ventanaLogin.__init__` and the same instance is passed to every child window, so a single connection and cursor are reused for the lifetime of the session.
+
+<Note>
+  The connection is opened externally via `getConexion()` in `conexion.py` and passed into the constructor. `DatabaseManager` does not open or close the connection itself — the calling code (in `logica_login.py`) owns the connection lifecycle.
+</Note>
+
+```python
+class DatabaseManager:
+    def __init__(self, conexion):
+        self.conexion = conexion
+        self.cursor = conexion.cursor()
+```
+
+### Method reference
+
+#### `setRegister`
+
+Inserts a new row into `usuarios`.
+
+```python
+def setRegister(self, user, password):
+    query = 'INSERT INTO usuarios (username, password) VALUES (%s, %s)'
+    self.cursor.execute(query, (user, password))
+    self.conexion.commit()
+```
+
+<ParamField path="user" type="str" required>
+  The username to register. Must be unique; a `mysql.connector.Error` is raised if it already exists.
+</ParamField>
+<ParamField path="password" type="str" required>
+  The password string to store. The application layer is responsible for any hashing before this call.
+</ParamField>
+
+---
+
+#### `getLogin`
+
+Looks up a user by username and password and returns their id and username on a successful match.
+
+```python
+def getLogin(self, user, password):
+    query = 'SELECT id, username FROM usuarios WHERE username = %s AND password = %s'
+    self.cursor.execute(query, (user, password))
+    return self.cursor.fetchone()
+```
+
+<ParamField path="user" type="str" required>
+  The username submitted in the login form.
+</ParamField>
+<ParamField path="password" type="str" required>
+  The password submitted in the login form.
+</ParamField>
+
+Returns a `(id, username)` tuple on success, or `None` if no matching row is found.
+
+---
+
+#### `getUser`
+
+Checks whether a username is already registered. Used by `ventanaRegister` before calling `setRegister`.
+
+```python
+def getUser(self, user):
+    query = 'SELECT username FROM usuarios WHERE username = %s'
+    self.cursor.execute(query, (user,))
+    return self.cursor.fetchone()
+```
+
+<ParamField path="user" type="str" required>
+  The username to look up.
+</ParamField>
+
+Returns a `(username,)` tuple if the user exists, or `None` if not.
+
+---
+
+#### `setNote`
+
+Inserts a new note row for the given user. The composite unique constraint on `(id, titulo)` will raise an error if the user already has a note with the same title.
+
+```python
+def setNote(self, user_id, titulo, nota):
+    query = 'INSERT INTO notas (titulo, nota, id) VALUES (%s, %s, %s)'
+    self.cursor.execute(query, (titulo, nota, user_id))
+    self.conexion.commit()
+```
+
+<ParamField path="user_id" type="int" required>
+  The `id` of the authenticated user, obtained from `getId`.
+</ParamField>
+<ParamField path="titulo" type="str" required>
+  The note title. Must be unique per user.
+</ParamField>
+<ParamField path="nota" type="str" required>
+  The full text body of the note.
+</ParamField>
+
+---
+
+#### `getTitles`
+
+Retrieves every note title belonging to a user. Used to populate the notes combo box in `ventanaMain`.
+
+```python
+def getTitles(self, user):
+    query = 'SELECT titulo FROM notas WHERE id = %s'
+    self.cursor.execute(query, (user,))
+    return self.cursor.fetchall()
+```
+
+<ParamField path="user" type="int" required>
+  The numeric user `id` (not the username string).
+</ParamField>
+
+Returns a list of `(titulo,)` tuples, or an empty list if the user has no notes.
+
+---
+
+#### `getNoteContent`
+
+Fetches the text body of a single note identified by user id and title.
+
+```python
+def getNoteContent(self, user, titulo):
+    query = 'SELECT nota FROM notas WHERE id = %s AND titulo = %s'
+    self.cursor.execute(query, (user, titulo))
+    return self.cursor.fetchone()
+```
+
+<ParamField path="user" type="int" required>
+  The numeric user `id`.
+</ParamField>
+<ParamField path="titulo" type="str" required>
+  The exact title of the note to retrieve.
+</ParamField>
+
+Returns a `(nota,)` tuple, or `None` if no matching note exists.
+
+---
+
+#### `deleteNote`
+
+Deletes a note row identified by user id and title.
+
+```python
+def deleteNote(self, user, titulo):
+    query = 'DELETE FROM notas WHERE id = %s AND titulo = %s'
+    self.cursor.execute(query, (user, titulo))
+    self.conexion.commit()
+```
+
+<ParamField path="user" type="int" required>
+  The numeric user `id`.
+</ParamField>
+<ParamField path="titulo" type="str" required>
+  The title of the note to delete.
+</ParamField>
+
+---
+
+#### `getId`
+
+Returns the numeric `id` for a given username. Called in `ventanaMain.__init__` to resolve the username string received from the login window into the integer primary key used by all note methods.
+
+```python
+def getId(self, user):
+    query = 'SELECT id FROM usuarios WHERE username = %s'
+    self.cursor.execute(query, (user,))
+    return self.cursor.fetchone()
+```
+
+<ParamField path="user" type="str" required>
+  The username string to look up.
+</ParamField>
+
+Returns a `(id,)` tuple, or `None` if the username does not exist.

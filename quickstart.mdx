@@ -1,81 +1,98 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
-icon: 'rocket'
+title: "Get started with Wert App: clone, install, and run"
+description: "Clone the repository, install dependencies, configure MySQL, and launch Wert App on your machine with these six straightforward steps."
 ---
 
-## Get started in three steps
+This guide gets Wert App running on your local machine as quickly as possible. You need Python 3, pip, and a running MySQL server before you begin. If you want a more detailed walkthrough — including OS-specific instructions and SQL setup — see the [installation guide](/installation).
 
-Get your documentation site running locally and make your first customization.
+<Steps>
+  <Step title="Clone the repository">
+    Clone the Wert App repository from GitHub and enter the project directory.
 
-### Step 1: Set up your local environment
+    ```bash
+    git clone https://github.com/lucavallini/wert-app.git
+    cd wert-app
+    ```
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Install Python dependencies">
+    Install the three required packages using pip.
 
-### Step 2: Deploy your changes
+    ```bash
+    pip install PyQt5 mysql-connector-python requests
+    ```
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    All other imports (`sys`, `mysql.connector`, etc.) are part of the Python standard library or the packages above.
+  </Step>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+  <Step title="Set up the MySQL database">
+    Create the `registro_usuarios` database in MySQL. The application connects to this database automatically and creates the `usuarios` and `notas` tables on first run.
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```sql
+    CREATE DATABASE registro_usuarios;
+    ```
 
-### Step 3: Go live
+    The app connects as `root` on `localhost:3306`. Make sure your MySQL server is running before launching Wert App.
+  </Step>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+  <Step title="Create the passwordBDD.txt file">
+    In the project root, create a plain-text file named `passwordBDD.txt` containing only your MySQL root password.
+
+    ```bash
+    echo "your_mysql_password" > passwordBDD.txt
+    ```
+
+    <Note>
+      `passwordBDD.txt` must exist in the same directory as `main.py`. The app reads this file at startup via `database/conexion.py`. If the file is missing, the application will crash before the window opens.
+    </Note>
+  </Step>
+
+  <Step title="Launch the application">
+    Run `main.py` from the project root. The entry point calls `setTables()` to create the database schema, then opens the login window.
+
+    ```bash
+    python main.py
+    ```
+
+    You should see the Wert App login window appear. The database tables are created automatically if they do not already exist.
+  </Step>
+
+  <Step title="Register an account and log in">
+    Click **Register** on the login screen to create a new account. Passwords must be at least six characters. After registering, return to the login screen, enter your credentials, and click **Log in** to access the main window with all features enabled.
+  </Step>
+</Steps>
+
+## What runs at startup
+
+For reference, here is the complete `main.py` entry point:
+
+```python main.py
+import sys
+from modules.logica_login import ventanaLogin
+from PyQt5.QtWidgets import QApplication
+from database.db_operations import DatabaseManager
+from database.conexion import setTables, getConexion
+
+def main():
+    if __name__ == '__main__':
+        setTables()
+        app = QApplication(sys.argv)
+        ventana_log = ventanaLogin()
+        ventana_log.show()
+        sys.exit(app.exec_())
+
+main()
+```
+
+`setTables()` runs `CREATE TABLE IF NOT EXISTS` for both `usuarios` and `notas`, so it is safe to call on every startup.
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Installation guide" icon="download" href="/installation">
+    Detailed setup with OS-specific instructions and all configuration options.
+  </Card>
+  <Card title="Introduction" icon="book-open" href="/introduction">
+    Overview of all features and the technology stack.
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

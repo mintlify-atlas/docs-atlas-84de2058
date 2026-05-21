@@ -1,0 +1,65 @@
+---
+title: "Authentication: registration and login in Wert App"
+description: "Learn how to create an account and log in to Wert App. Covers the registration flow, password rules, and what happens on successful or failed login."
+---
+
+Wert App requires every user to have a personal account before accessing the main features. The authentication system handles two flows: creating a new account through the registration screen, and signing in through the login screen. Both windows are lightweight dialogs that validate your input locally before touching the database.
+
+## Registering an account
+
+The registration screen (`ventanaRegister`) collects a username and a password — entered twice to catch typos. All three fields must be filled before the form can be submitted.
+
+<Note>
+  Passwords must be **at least 6 characters** long. Shorter passwords are rejected immediately with an error dialog before any database call is made.
+</Note>
+
+<Warning>
+  Usernames must be unique. If the username you enter is already taken, registration fails with a "Usuario ya existe" error. Choose a different username and try again.
+</Warning>
+
+### Validation rules
+
+The following checks are performed in order when you click the **Register** button:
+
+| Rule | Error shown |
+|---|---|
+| All fields are non-empty | "Rellene los campos y vuelva a intentar" |
+| Password is at least 6 characters | "La contraseña debe tener al menos 6 caracteres" |
+| Password and confirmation match | "Las contraseñas no son iguales" |
+| Username does not already exist | "Usuario ya existe" |
+
+### Registration flow
+
+<Steps>
+  <Step title="Open the registration window">
+    On the login screen, click the **Register** button. The `ventanaRegister` dialog opens without closing the login screen.
+  </Step>
+  <Step title="Enter a username">
+    Type your desired username into the username field (`_user_input_reg`). Usernames are stored and compared as-is, so casing matters.
+  </Step>
+  <Step title="Enter a password">
+    Type a password of at least 6 characters into the password field (`_password_input_reg`).
+  </Step>
+  <Step title="Confirm the password">
+    Re-type the same password in the confirmation field (`_password_input_reg_verify`). You can also press **Enter** here to submit the form.
+  </Step>
+  <Step title="Submit">
+    Click the **Register** button. If all validations pass and the username is available, a success dialog appears and the registration window closes automatically.
+  </Step>
+</Steps>
+
+## Logging in
+
+The login screen (`ventanaLogin`) accepts a username and a password. Both fields are required — leaving either one blank shows the error "Rellene los campos user y password."
+
+### Login flow
+
+1. Enter your username in `_user_input` and your password in `_password_input`.
+2. Click **Login** or press **Enter** while the password field is focused.
+3. Wert App queries the database for a matching `username` + `password` pair.
+
+**On success** — a welcome dialog appears ("¡Bienvenido de nuevo \{username\}!"), the login window closes, and the main application window (`ventanaMain`) opens automatically.
+
+**On failure** — an error dialog shows "Usuario o contraseña incorrecta." The login window remains open so you can try again.
+
+**On connection error** — if the database is unreachable, a connection error dialog displays the underlying exception message.

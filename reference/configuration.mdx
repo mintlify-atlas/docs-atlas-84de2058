@@ -1,0 +1,55 @@
+---
+title: "Wert App configuration reference and setup options"
+description: "All configuration options for Wert App: the required passwordBDD.txt file, hardcoded MySQL connection parameters, and the API keys used by the app."
+---
+
+Wert App uses a minimal, file-based configuration model. There is no `.env` file or dedicated config file — the only thing you need to provide before running the app is a single text file containing your MySQL root password. All other settings, including database connection parameters and API keys, are hardcoded in the source files.
+
+## Required files
+
+### passwordBDD.txt
+
+This is the only configuration file you must create manually. Place it in the project root directory (the same folder as `main.py`) before running the app for the first time. It must contain your MySQL root password as plain text on a single line.
+
+```text
+your_mysql_root_password
+```
+
+The file is read at startup in `database/conexion.py` before any database connection is attempted. If the file is missing or the password is incorrect, the app will fail to start.
+
+<Warning>
+  Do not commit `passwordBDD.txt` to version control. Add it to your `.gitignore` file to prevent accidentally exposing your MySQL root password.
+</Warning>
+
+## Database connection settings
+
+The following parameters are hardcoded in `database/conexion.py` and are used for every database connection the app makes. Your MySQL installation must match these settings.
+
+| Parameter  | Value               |
+| ---------- | ------------------- |
+| `host`     | `localhost`         |
+| `user`     | `root`              |
+| `port`     | `3306`              |
+| `database` | `registro_usuarios` |
+
+If you need to use a different host, user, or port, edit the `getConexion` function in `database/conexion.py` directly.
+
+<Note>
+  The app automatically creates the `usuarios` and `notas` tables on first run via `setTables()`. However, it does **not** create the database itself — you must create the `registro_usuarios` database in MySQL before running the app.
+</Note>
+
+## API keys
+
+### ExchangeRate API
+
+The app uses the ExchangeRate API v6 to fetch live currency conversion rates. The API key is hardcoded on line 6 of `api/change_api.py`:
+
+```python
+self.api_key = "f602a7d2eff20ba66b6f2953"
+```
+
+The base URL used is `https://v6.exchangerate-api.com/v6/`. If the request fails or returns a non-200 status, `get_rate` returns `None` and the conversion feature will be unavailable.
+
+### World Bank API
+
+The World Bank API requires no authentication key. The app accesses it at `http://api.worldbank.org/v2` without any credentials. Each request for economic indicator data uses `per_page=5` to retrieve the 5 most recent data points.

@@ -1,0 +1,103 @@
+---
+title: "Currency converter: real-time rates for 30 currencies"
+description: "Convert between 30 world currencies using live ExchangeRate API data. Pick source and target currencies, enter an amount, and see the result instantly."
+---
+
+The currency converter lets you instantly convert any amount between 30 major world currencies. Exchange rates are fetched live from the ExchangeRate API each time you click **Convertir**, so results always reflect current market rates.
+
+## How to use
+
+1. **Select the source currency** from the **Moneda** dropdown (`moneda_combo_box`). This is the currency you are converting *from*.
+2. **Enter the amount** to convert in the amount field (`monto_input`).
+3. **Select the target currency** from the **Cambio** dropdown (`cambio_combo_box`). This is the currency you are converting *to*.
+4. Click the **Convertir** button. The converted amount appears in the result area (`conversion_text`), rounded to two decimal places.
+
+<Note>
+  You cannot convert a currency to itself. If both dropdowns show the same currency, an error dialog appears before any API call is made.
+</Note>
+
+<Warning>
+  The amount field must contain a numeric value. Entering text or leaving the field empty will trigger the error: "Ingrese un valor numerico por favor."
+</Warning>
+
+### Conversion formula
+
+The result is calculated by multiplying the entered amount by the live exchange rate returned by the API:
+
+```
+result = amount × exchange_rate
+```
+
+For example, converting 100 USD to EUR when the rate is 0.92 gives **92.00 EUR**.
+
+## Supported currencies
+
+The converter supports the following 30 currencies, defined in `get_monedas()`:
+
+```python
+{
+    "USD": "Dólar Estadounidense",
+    "EUR": "Euro",
+    "ARS": "Peso Argentino",
+    "BRL": "Real Brasileño",
+    "MXN": "Peso Mexicano",
+    "GBP": "Libra Esterlina",
+    "JPY": "Yen Japonés",
+    "CNY": "Yuan Chino",
+    "CAD": "Dólar Canadiense",
+    "AUD": "Dólar Australiano",
+    "CHF": "Franco Suizo",
+    "RUB": "Rublo Ruso",
+    "INR": "Rupia India",
+    "TRY": "Lira Turca",
+    "KRW": "Won Surcoreano",
+    "IDR": "Rupia Indonesia",
+    "ZAR": "Rand Sudafricano",
+    "NZD": "Dólar Neozelandés",
+    "HKD": "Dólar Hongkonés",
+    "SGD": "Dólar Singapurense",
+    "SEK": "Corona Sueca",
+    "NOK": "Corona Noruega",
+    "DKK": "Corona Danesa",
+    "PLN": "Zloty Polaco",
+    "THB": "Baht Tailandés",
+    "HUF": "Florín Húngaro",
+    "CZK": "Corona Checa",
+    "CLP": "Peso Chileno",
+    "PEN": "Sol Peruano",
+    "COP": "Peso Colombiano",
+}
+```
+
+| Code | Currency |
+|---|---|
+| USD | Dólar Estadounidense |
+| EUR | Euro |
+| ARS | Peso Argentino |
+| BRL | Real Brasileño |
+| MXN | Peso Mexicano |
+| GBP | Libra Esterlina |
+| JPY | Yen Japonés |
+| CNY | Yuan Chino |
+| CAD | Dólar Canadiense |
+| AUD | Dólar Australiano |
+| CHF | Franco Suizo |
+| RUB | Rublo Ruso |
+| INR | Rupia India |
+| TRY | Lira Turca |
+| KRW | Won Surcoreano |
+| IDR | Rupia Indonesia |
+| ZAR | Rand Sudafricano |
+| NZD | Dólar Neozelandés |
+| HKD | Dólar Hongkonés |
+| SGD | Dólar Singapurense |
+| SEK | Corona Sueca |
+| NOK | Corona Noruega |
+| DKK | Corona Danesa |
+| PLN | Zloty Polaco |
+| THB | Baht Tailandés |
+| HUF | Florín Húngaro |
+| CZK | Corona Checa |
+| CLP | Peso Chileno |
+| PEN | Sol Peruano |
+| COP | Peso Colombiano |

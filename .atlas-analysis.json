@@ -1,0 +1,67 @@
+{
+  "projectType": "general",
+  "projectName": "Wert App",
+  "projectDescription": "A PyQt5 desktop application for user authentication, personal note management, currency conversion, and World Bank economic data exploration.",
+  "theme": "almond",
+  "primaryColor": "#66BB6A",
+  "lightColor": "#f6f5f2",
+  "darkColor": "#1A3300",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart", "installation"]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/authentication",
+              "features/currency-converter",
+              "features/economic-data",
+              "features/notes"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/database",
+              "architecture/api-integrations"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/configuration",
+              "reference/faq"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "User registration and login with MySQL-backed authentication",
+    "Personal notes manager with per-user CRUD operations",
+    "Real-time currency converter supporting 30 major world currencies via ExchangeRate API",
+    "World Bank economic data explorer for GDP, inflation, unemployment, and more",
+    "PyQt5 desktop GUI with consistent green-themed stylesheet"
+  ],
+  "publicApiSurface": [
+    "DatabaseManager.setRegister(user, password)",
+    "DatabaseManager.getLogin(user, password)",
+    "DatabaseManager.setNote(user_id, titulo, nota)",
+    "DatabaseManager.getTitles(user)",
+    "DatabaseManager.getNoteContent(user, titulo)",
+    "DatabaseManager.deleteNote(user, titulo)",
+    "WorldBankAPI.get_eco_info(country_code, indicator)",
+    "WorldBankAPI.get_countries()",
+    "WorldBankAPI.get_indicators()",
+    "WorldBankAPI.format_eco_data(datos)",
+    "ChangeAPi.get_rate(moneda, cambio)",
+    "ChangeAPi.get_monedas()"
+  ]
+}

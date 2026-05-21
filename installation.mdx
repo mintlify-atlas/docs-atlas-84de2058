@@ -1,0 +1,218 @@
+---
+title: "Install and configure Wert App on your local machine"
+description: "Step-by-step installation for Wert App: Python environment, pip dependencies, MySQL database setup, password file configuration, and launching the app."
+---
+
+This guide covers every step needed to install and configure Wert App from scratch, including Python version requirements, all pip packages, MySQL database creation, and the `passwordBDD.txt` password file. Follow the steps in order — each one builds on the previous.
+
+<Steps>
+  <Step title="Verify your Python version">
+    Wert App requires **Python 3**. Confirm your installation before proceeding.
+
+    <Tabs>
+      <Tab title="Windows">
+        ```bash
+        python --version
+        ```
+      </Tab>
+      <Tab title="macOS / Linux">
+        ```bash
+        python3 --version
+        ```
+      </Tab>
+    </Tabs>
+
+    You should see output such as `Python 3.10.12`. Any Python 3.x release is supported. If Python is not installed, download it from [python.org](https://www.python.org/downloads/).
+  </Step>
+
+  <Step title="Install Python dependencies">
+    Wert App depends on three third-party packages. Install them all with a single command.
+
+    ```bash
+    pip install PyQt5 mysql-connector-python requests
+    ```
+
+    | Package | Purpose |
+    |---|---|
+    | `PyQt5` | Desktop GUI framework — all windows and widgets |
+    | `mysql-connector-python` | MySQL database connectivity |
+    | `requests` | HTTP calls to ExchangeRate API and World Bank API |
+
+    <Tabs>
+      <Tab title="Windows">
+        ```bash
+        pip install PyQt5 mysql-connector-python requests
+        ```
+      </Tab>
+      <Tab title="macOS / Linux">
+        ```bash
+        pip3 install PyQt5 mysql-connector-python requests
+        ```
+
+        If you are using a virtual environment (recommended), activate it first, then use `pip` instead of `pip3`.
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Install and start MySQL">
+    Wert App connects to MySQL on `localhost` at port `3306` as the `root` user. You need a running MySQL server before launching the app.
+
+    <Tabs>
+      <Tab title="Windows">
+        Download and run the MySQL Installer from [dev.mysql.com](https://dev.mysql.com/downloads/installer/). Choose the **Server Only** option. The installer sets up the service automatically.
+      </Tab>
+      <Tab title="macOS">
+        Install MySQL via Homebrew:
+
+        ```bash
+        brew install mysql
+        brew services start mysql
+        ```
+      </Tab>
+      <Tab title="Linux">
+        Install MySQL Server using your package manager:
+
+        ```bash
+        sudo apt update
+        sudo apt install mysql-server
+        sudo systemctl start mysql
+        ```
+      </Tab>
+    </Tabs>
+
+    Verify the service is running before continuing.
+  </Step>
+
+  <Step title="Create the database">
+    Log in to MySQL and create the `registro_usuarios` database. Wert App uses this exact name — do not change it.
+
+    ```bash
+    mysql -u root -p
+    ```
+
+    Once logged in, run:
+
+    ```sql
+    CREATE DATABASE registro_usuarios;
+    ```
+
+    You do not need to create any tables manually. The application calls `setTables()` on startup, which runs the following schema automatically:
+
+    ```sql
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(50) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL
+    );
+
+    CREATE TABLE notas (
+        id_nota INT AUTO_INCREMENT PRIMARY KEY,
+        titulo VARCHAR(255),
+        nota TEXT,
+        id INT,
+        FOREIGN KEY (id) REFERENCES usuarios(id),
+        UNIQUE (id, titulo)
+    );
+    ```
+  </Step>
+
+  <Step title="Create the passwordBDD.txt file">
+    The database connection reads your MySQL root password from a plain-text file named `passwordBDD.txt` in the project root. This file must exist before you run the app.
+
+    Create the file and write your MySQL password into it:
+
+    <Tabs>
+      <Tab title="Windows (Command Prompt)">
+        ```bash
+        echo your_mysql_password> passwordBDD.txt
+        ```
+      </Tab>
+      <Tab title="macOS / Linux">
+        ```bash
+        echo "your_mysql_password" > passwordBDD.txt
+        ```
+      </Tab>
+    </Tabs>
+
+    Replace `your_mysql_password` with the actual password you set for the MySQL `root` user during installation.
+
+    <Warning>
+      Do not commit `passwordBDD.txt` to version control. Add it to your `.gitignore` to prevent accidentally exposing your database credentials.
+
+      ```bash
+      echo "passwordBDD.txt" >> .gitignore
+      ```
+    </Warning>
+
+    For reference, here is how `database/conexion.py` reads this file and constructs the connection:
+
+    ```python database/conexion.py
+    import mysql.connector
+
+    with open('passwordBDD.txt', 'r') as archivo:
+        password = archivo.read()
+
+    def getConexion():
+        conexion = mysql.connector.connect(
+            user='root',
+            password=password,
+            host='localhost',
+            database='registro_usuarios',
+            port=3306
+        )
+        return conexion
+    ```
+
+    The connection parameters are:
+
+    | Parameter | Value |
+    |---|---|
+    | `host` | `localhost` |
+    | `port` | `3306` |
+    | `user` | `root` |
+    | `database` | `registro_usuarios` |
+    | `password` | Read from `passwordBDD.txt` |
+  </Step>
+
+  <Step title="Run the application">
+    From the project root directory, launch the app:
+
+    ```bash
+    python main.py
+    ```
+
+    On macOS or Linux, use `python3` if `python` points to Python 2:
+
+    ```bash
+    python3 main.py
+    ```
+
+    The application will:
+
+    1. Read `passwordBDD.txt` and open a MySQL connection.
+    2. Run `setTables()` to create the `usuarios` and `notas` tables if they do not exist.
+    3. Open the login window.
+
+    If the window does not appear, check that MySQL is running and that `passwordBDD.txt` contains the correct password.
+  </Step>
+</Steps>
+
+## Troubleshooting common issues
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| App crashes immediately with a file error | `passwordBDD.txt` is missing or in the wrong directory | Create the file in the same folder as `main.py` |
+| `mysql.connector.errors.ProgrammingError` | Database `registro_usuarios` does not exist | Run `CREATE DATABASE registro_usuarios;` in MySQL |
+| `Access denied for user 'root'` | Wrong password in `passwordBDD.txt` | Update `passwordBDD.txt` with the correct MySQL root password |
+| Login window appears but login always fails | Tables were not created | Confirm `setTables()` ran without errors; check the console output |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    A condensed walkthrough if you want the shortest path to a running app.
+  </Card>
+  <Card title="Introduction" icon="book-open" href="/introduction">
+    Overview of all features, who the app is for, and the full technology stack.
+  </Card>
+</CardGroup>

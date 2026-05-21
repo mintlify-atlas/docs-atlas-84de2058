@@ -1,0 +1,121 @@
+---
+title: "Wert App frequently asked questions and troubleshooting"
+description: "Answers to common questions about running Wert App, database setup, login issues, API behavior, notes, and cross-platform compatibility."
+---
+
+This page answers the most common questions about setting up and using Wert App. If you're experiencing a problem at startup, with login, or with data not displaying as expected, start here.
+
+<AccordionGroup>
+  <Accordion title="The app crashes on startup — what should I check?">
+    The most common causes of a crash on startup are:
+
+    - **`passwordBDD.txt` is missing or in the wrong location.** The file must exist in the project root (the same directory as `main.py`). If it is missing, `conexion.py` will raise a `FileNotFoundError` before the app window opens.
+    - **The password in `passwordBDD.txt` is incorrect.** If the password doesn't match the MySQL root password, the connection will be refused.
+    - **MySQL is not running.** The app connects to MySQL at startup via `setTables()`. Make sure your MySQL service is active before launching the app.
+    - **The `registro_usuarios` database does not exist.** The app creates its tables automatically, but it does not create the database. You must create it manually first. See the next question for the SQL command.
+  </Accordion>
+
+  <Accordion title="How do I create the MySQL database?">
+    The app does not create the database automatically. Before running `main.py` for the first time, connect to your MySQL instance and run:
+
+    ```sql
+    CREATE DATABASE registro_usuarios;
+    ```
+
+    Once the database exists, the app will create the `usuarios` and `notas` tables on its own the first time it starts.
+  </Accordion>
+
+  <Accordion title="Why does login fail even with the correct credentials?">
+    A few things to check:
+
+    - **Passwords are stored as plain text.** There is no hashing. The value stored at registration is compared directly against what you enter at login.
+    - **Leading and trailing whitespace is stripped.** Both the username and password fields call `.strip()` before being sent to the database, so accidental spaces won't cause a mismatch.
+    - **The user account may not exist.** Use a MySQL client to verify the user exists in the `usuarios` table, or try registering again if registration previously failed silently.
+  </Accordion>
+
+  <Accordion title="Can I change the MySQL host, user, or port?">
+    Not through a configuration file — these values are hardcoded in `database/conexion.py`. To use a different host, user, or port, open that file and edit the parameters in the `getConexion` function directly:
+
+    ```python
+    conexion = mysql.connector.connect(
+        user='root',
+        password=password,
+        host='localhost',
+        database='registro_usuarios',
+        port=3306
+    )
+    ```
+
+    Replace the values as needed and restart the app.
+  </Accordion>
+
+  <Accordion title="Why are currency rates sometimes unavailable?">
+    The currency conversion feature depends on the ExchangeRate API. Rates may be unavailable for two reasons:
+
+    - **The API is rate-limited.** The free tier has a monthly request limit. Once exceeded, requests return a non-200 response.
+    - **The API key has expired or been revoked.** The key is hardcoded in `api/change_api.py`. If it stops working, it must be replaced in that file.
+
+    When a request fails for any reason, `get_rate` returns `None` and the conversion result will not be displayed.
+  </Accordion>
+
+  <Accordion title="What does 'Dato no disponible' mean in economic data?">
+    This message appears when the World Bank API returns `null` for a specific country, indicator, and year combination. Not all indicators have data for every country and year.
+
+    The `format_eco_data` method in `api/world_bank_api.py` handles this case explicitly:
+
+    ```python
+    elif valor == None:
+        texto += f'{año}: Dato no disponible \n'
+    ```
+
+    It is not an error — it simply means the World Bank has not published data for that data point.
+  </Accordion>
+
+  <Accordion title="Can two users have notes with the same title?">
+    Different users can use the same note title. The `notas` table enforces a `UNIQUE` constraint on the combination of `id` (the user's ID) and `titulo` (the note title):
+
+    ```sql
+    UNIQUE (id, titulo)
+    ```
+
+    This means a single user cannot have two notes with the same title, but two different users can each have a note titled the same thing without conflict.
+  </Accordion>
+
+  <Accordion title="What is the minimum password length?">
+    6 characters. This is enforced in `modules/logica_register.py` before the registration request is sent to the database:
+
+    ```python
+    if tamanio_clave < 6:
+        QMessageBox.critical(self, 'Error', 'La contraseña debe tener al menos 6 caracteres')
+        return
+    ```
+
+    There is no maximum length enforced in the application, though the `password` column is defined as `VARCHAR(255)`.
+  </Accordion>
+
+  <Accordion title="How are the 5 most recent data points selected for economic indicators?">
+    The `WorldBankAPI.get_eco_info` method passes `per_page=5` as a query parameter when calling the World Bank API:
+
+    ```python
+    params = {'format': 'json', 'per_page': 5}
+    ```
+
+    The World Bank API returns results in reverse chronological order by default, so the 5 most recent available years are returned first.
+  </Accordion>
+
+  <Accordion title="Is the app available for Windows, macOS, and Linux?">
+    Yes. Wert App is built with PyQt5, which is a cross-platform GUI framework. It runs on Windows, macOS, and Linux without code changes.
+
+    To run the app on any platform, you need:
+
+    - Python 3
+    - MySQL Server running locally
+    - The Python dependencies installed (PyQt5, mysql-connector-python, requests)
+
+    Start the app with:
+
+    ```bash
+    python main.py
+    ```
+  </Accordion>
+</AccordionGroup>

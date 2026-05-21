@@ -1,0 +1,102 @@
+---
+title: "Wert App architecture: four layers and startup flow"
+description: "A guide to the layered architecture of Wert App, covering the presentation, logic, data, and API integration layers and how they connect at startup."
+---
+
+Wert App is a PyQt5 desktop application built around a clear separation of concerns across four layers: a presentation layer that owns all visual widgets and stylesheets, a logic layer that handles user-facing workflows, a data layer that manages a MySQL database, and an integration layer that wraps two external HTTP APIs. Each layer communicates only with the layers directly adjacent to it, keeping the codebase easy to extend without touching unrelated code.
+
+## Layer breakdown
+
+The application is divided into four distinct layers, each with a well-defined responsibility.
+
+**1. Presentation layer — `Assets/windows/` and `Assets/styles/`**
+
+All PyQt5 UI layouts live under `Assets/windows/`. Three UI files define the visual skeleton of each window:
+
+- `widget_login.py` (`uiLogin`) — login form layout
+- `widget_register.py` (`uiRegister`) — registration form layout
+- `main_window.py` (`uiWert`) — the full main window with notes, currency converter, and economic-data panels
+
+`Assets/styles/stylesheet.py` wraps each raw UI class with a styled base class (`loginStyle`, `registerStyle`, `mainWindowStyle`). These base classes apply Qt stylesheets (colors, fonts, border radii) and configure alignment and echo modes so the logic layer inherits a fully-styled widget tree without embedding style details in business logic.
+
+**2. Logic layer — `modules/`**
+
+Each module contains a single class that subclasses the corresponding style base class and wires up all signal/slot connections:
+
+- `logica_login.py` (`ventanaLogin`) — validates credentials via `DatabaseManager`, then opens `ventanaMain` or `ventanaRegister`
+- `logica_register.py` (`ventanaRegister`) — validates new-user input (non-empty fields, password length ≥ 6, password match) then calls `DatabaseManager.setRegister`
+- `logica_main_window.py` (`ventanaMain`) — orchestrates notes CRUD, currency conversion via `ChangeAPi`, and economic-data lookups via `WorldBankAPI`
+
+**3. Data layer — `database/`**
+
+- `conexion.py` — reads the database password from `passwordBDD.txt`, provides `getConexion()` to open a `mysql.connector` connection, and provides `setTables()` to create the `usuarios` and `notas` tables if they do not already exist
+- `db_operations.py` — `DatabaseManager` receives an open connection in its constructor and exposes eight methods covering user registration, login, note creation, retrieval, and deletion
+
+**4. Integration layer — `api/`**
+
+- `world_bank_api.py` — `WorldBankAPI` queries the World Bank REST API for country lists, economic indicators, and historical data series
+- `change_api.py` — `ChangeAPi` queries the ExchangeRate-API v6 for live currency conversion rates
+
+## Application startup flow
+
+`main.py` is the single entry point. It performs three steps before the event loop starts:
+
+<Steps>
+  <Step title="Ensure database tables exist">
+    `setTables()` is called first. It opens its own connection, runs `CREATE TABLE IF NOT EXISTS` for `usuarios`, and then runs `CREATE TABLE` for `notas` (skipping silently if the table already exists).
+  </Step>
+  <Step title="Create the QApplication instance">
+    `QApplication(sys.argv)` initialises the Qt runtime. No window is shown yet.
+  </Step>
+  <Step title="Show the login window">
+    A `ventanaLogin` instance is created and shown. `ventanaLogin.__init__` opens a persistent MySQL connection and creates a `DatabaseManager` bound to that connection, which is then shared with any child windows.
+  </Step>
+</Steps>
+
+```python
+import sys
+from modules.logica_login import ventanaLogin
+from PyQt5.QtWidgets import QApplication
+from database.db_operations import DatabaseManager
+from database.conexion import setTables, getConexion
+
+def main():
+    if __name__ == '__main__':
+        setTables()
+        app = QApplication(sys.argv)
+        ventana_log = ventanaLogin()
+        ventana_log.show()
+        sys.exit(app.exec_())
+
+main()
+```
+
+## Window flow
+
+Once the event loop is running, windows open and close in a linear sequence driven by user actions.
+
+<Steps>
+  <Step title="ventanaLogin (entry point)">
+    The login window is always shown first. The user can either submit credentials or click the register button.
+
+    - **Register button** → `ventanaRegister` opens as a secondary window while the login window stays visible.
+    - **Successful login** → `ventanaLogin` closes itself and opens `ventanaMain`, passing the shared `DatabaseManager` instance and the authenticated username.
+  </Step>
+  <Step title="ventanaRegister (optional)">
+    Opens on top of the login window. On successful registration it closes itself; the login window remains so the user can sign in immediately.
+  </Step>
+  <Step title="ventanaMain (authenticated session)">
+    The main application window. It holds all three feature panels — notes, currency converter, and economic data — in a single `QMainWindow`. It owns references to both API client objects (`WorldBankAPI` and `ChangeAPi`) and uses the `DatabaseManager` passed from the login window for all note operations.
+  </Step>
+</Steps>
+
+## Explore further
+
+<CardGroup cols={2}>
+  <Card title="Database design and operations" icon="database" href="/architecture/database">
+    MySQL schema, table definitions, and the full `DatabaseManager` API reference.
+  </Card>
+  <Card title="External API integrations" icon="plug" href="/architecture/api-integrations">
+    How `WorldBankAPI` and `ChangeAPi` wrap external HTTP services and handle errors.
+  </Card>
+</CardGroup>

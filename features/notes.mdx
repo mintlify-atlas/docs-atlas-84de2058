@@ -1,0 +1,53 @@
+---
+title: "Notes: save and manage your personal notes in Wert App"
+description: "Write, save, load, and delete personal notes inside Wert App. Notes are tied to your account and organized by title for quick retrieval at any time."
+---
+
+The notes panel lets you keep personal text notes directly inside Wert App. Each note has a title and a body, and notes are stored in the database tied to your user account — so only you can see, edit, or delete them. You can maintain as many notes as you need and switch between them using the dropdown list.
+
+## Creating a note
+
+<Warning>
+  Both the title and the note body must be filled before saving. Clicking **Guardar** with either field empty shows the error: "Rellene los campos de titulo y nota antes de guardar."
+</Warning>
+
+<Note>
+  Note titles must be unique per user. If you try to save a note with a title that already exists in your account, the database will raise a duplicate key error. Use a distinct title or delete the existing note first.
+</Note>
+
+<Steps>
+  <Step title="Enter a title">
+    Type a unique title for your note in the title field (`titulo_nota_input`). The title is used to identify and retrieve the note later.
+  </Step>
+  <Step title="Write your note">
+    Type the note content in the text area (`nota_input`). The field accepts multi-line plain text.
+  </Step>
+  <Step title="Save the note">
+    Click **Guardar**. If both fields are filled, the note is inserted into the database and a success dialog appears. The notes dropdown (`notas_combo`) is refreshed automatically to include the new title.
+  </Step>
+</Steps>
+
+## Loading a note
+
+1. Select the note title you want to read from the **Notas** dropdown (`notas_combo`).
+2. Click **Cargar nota**. The note body is loaded into `nota_input` and the title is copied into `titulo_nota_input`.
+
+After loading, the title field becomes **read-only** to prevent accidental edits to the identifier while you are viewing or modifying the note content. To create a brand-new note, use the **Nueva** button to unlock the title field again.
+
+## Deleting a note
+
+1. Select the note you want to remove from the **Notas** dropdown.
+2. Click **Eliminar**. The note is permanently deleted from the database.
+
+On success, a confirmation dialog appears, and the title field, note body, and dropdown are all cleared. The dropdown is then refreshed to reflect the remaining notes.
+
+If no note is selected in the dropdown when you click **Eliminar**, the error "Seleccione una nota para eliminar." is shown and nothing is deleted.
+
+## Starting a new note
+
+Click **Nueva** at any time to reset the panel:
+
+- The note body (`nota_input`) is cleared.
+- The title field (`titulo_nota_input`) is cleared and made **editable** again (in case it was locked after loading a note).
+
+This prepares the panel for a fresh note without affecting any already-saved notes.

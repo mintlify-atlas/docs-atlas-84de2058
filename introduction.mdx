@@ -1,0 +1,49 @@
+---
+title: "Wert App: your financial and productivity desktop tool"
+description: "Wert App is a PyQt5 desktop application for currency conversion, economic research, personal note management, and secure user authentication."
+---
+
+Wert App is a Python desktop application built with PyQt5 that combines real-time financial tools and personal productivity in a single native window. You can convert between 30 currencies using live exchange rates, explore World Bank economic indicators for any country, manage personal notes tied to your account, and authenticate securely — all without leaving the app.
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/features/authentication">
+    Register an account and log in securely. Credentials are stored in a MySQL database with per-user data isolation.
+  </Card>
+  <Card title="Currency converter" icon="coins" href="/features/currency-converter">
+    Convert between 30 major currencies using the ExchangeRate API with up-to-date conversion rates.
+  </Card>
+  <Card title="Economic data explorer" icon="chart-line" href="/features/economic-data">
+    Browse World Bank indicators — GDP, inflation, unemployment, internet access, and more — for any country.
+  </Card>
+  <Card title="Notes manager" icon="note-sticky" href="/features/notes">
+    Create, load, and delete personal notes. Each note is saved to the database and linked to your user account.
+  </Card>
+</CardGroup>
+
+## Who is it for?
+
+Wert App is well suited for:
+
+- **Students** who need quick access to economic data for research or assignments without navigating multiple websites.
+- **Researchers and analysts** who want to compare World Bank indicators across countries in a desktop tool.
+- **Anyone tracking personal finances** who wants a fast, offline-ready currency converter alongside a private notes workspace.
+- **Python learners** interested in a real-world PyQt5 application that integrates external APIs and a relational database.
+
+<Note>
+  Wert App stores all user data locally in a MySQL database you control. No data is sent to any external service beyond the ExchangeRate API and World Bank API requests you trigger in the app.
+</Note>
+
+## Technology stack
+
+| Component | Technology |
+|---|---|
+| GUI framework | PyQt5 |
+| Database | MySQL via `mysql-connector-python` |
+| HTTP requests | Python `requests` library |
+| Currency data | ExchangeRate API (v6) |
+| Economic data | World Bank API (v2) |
+| Language | Python 3 |
+
+The application follows a modular structure: `main.py` initialises the database tables and launches the login window. The `database/` package handles all MySQL connectivity and CRUD operations. The `api/` package wraps the two external APIs. The `modules/` package contains the PyQt5 window logic for login, registration, and the main application window.

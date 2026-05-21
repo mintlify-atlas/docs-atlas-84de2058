@@ -1,0 +1,71 @@
+---
+title: "World Bank economic indicators explorer in Wert App"
+description: "Browse macroeconomic indicators for any country using live World Bank data. Covers GDP, inflation, unemployment, education, infrastructure, and trade."
+---
+
+The economic data explorer lets you look up key development indicators for countries worldwide. Data is retrieved directly from the World Bank API and covers metrics such as GDP, inflation, unemployment, education enrollment, infrastructure access, and trade figures.
+
+<Info>
+  All data comes from the [World Bank Open Data API](https://data.worldbank.org/). Each query returns the **5 most recent years** available for the selected country and indicator. Some country-indicator combinations may have gaps where the World Bank has not yet published data.
+</Info>
+
+## How to use
+
+1. **Select a country** from the **País** dropdown (`pais_combo`). The list is populated with all non-aggregate World Bank country entries at startup.
+2. **Select an indicator** from the **Indicador** dropdown (`indicador_combo`).
+3. Click the **Datos** button. Results appear in the data text area (`datos_text`).
+
+To fetch every indicator for a country at once, choose **Ver todos** from the indicator dropdown and click **Datos**. This runs a separate query per indicator and displays the most recent data point for each one in a single summary view.
+
+## Supported indicators
+
+| Code | Indicator |
+|---|---|
+| NY.GDP.MKTP.CD | PIB total (US$) |
+| NY.GDP.MKTP.KD.ZG | Crecimiento del PIB (%) |
+| NY.GDP.PCAP.CD | PIB por persona (US$) |
+| FP.CPI.TOTL.ZG | Inflación anual (%) |
+| SL.UEM.TOTL.ZS | Desempleo (%) |
+| SE.SEC.NENR | Matriculación secundaria neta (%) |
+| EG.ELC.ACCS.ZS | Acceso a electricidad (%) |
+| SH.H2O.SMDW.ZS | Acceso a agua potable (%) |
+| IT.NET.USER.ZS | Usuarios de Internet (%) |
+| NE.EXP.GNFS.ZS | Exportaciones de bienes y servicios (% del PIB) |
+| NE.IMP.GNFS.ZS | Importaciones de bienes y servicios (% del PIB) |
+
+## How data is formatted
+
+The `format_eco_data` method in `WorldBankAPI` formats each year's value according to its magnitude:
+
+- **Values greater than 1,000** — displayed as a dollar amount with thousand separators: `US$1,234,567,890`
+- **Values of 1,000 or less** — displayed as a percentage rounded to two decimal places: `3.45 %`
+- **Missing values** — displayed as: `Dato no disponible`
+
+Example output for a single indicator query:
+
+```
+2023: US$28,781,083,764,900
+2022: US$25,744,107,776,200
+2021: US$23,315,081,630,300
+2020: US$21,060,473,613,200
+2019: US$21,380,976,119,300
+```
+
+Example output for a percentage indicator:
+
+```
+2023: 3.40 %
+2022: 8.00 %
+2021: 4.70 %
+2020: 1.23 %
+2019: 2.29 %
+```
+
+When **Ver todos** is selected, the summary view shows one line per indicator with the most recent available year:
+
+```
+PIB total (US$): 28781083764900 (2023)
+Inflación anual (%): 3.4 (2023)
+Desempleo (%): Dato no disponible
+...
+```

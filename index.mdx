@@ -1,133 +1,55 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
-icon: 'star'
+title: "Wert App: currency, economic data, and notes desktop app"
+description: "Wert App combines a real-time currency converter, World Bank economic data explorer, and personal notes manager in one PyQt5 desktop application."
 ---
 
-## Setting up
+Wert App is an all-in-one PyQt5 desktop application that brings financial data, economic research, and personal productivity together in a single interface. Log in securely, convert currencies in real time, explore World Bank indicators for any country, and keep personal notes — all from a native desktop window.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get Wert App running on your machine in minutes.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Installation" icon="download" href="/installation">
+    Full setup guide including Python, MySQL, and dependencies.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Currency Converter" icon="coins" href="/features/currency-converter">
+    Convert between 30 major world currencies using live exchange rates.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Economic Data" icon="chart-line" href="/features/economic-data">
+    Browse GDP, inflation, unemployment, and more via the World Bank API.
   </Card>
-</Columns>
+  <Card title="Notes Manager" icon="note-sticky" href="/features/notes">
+    Save, load, and delete personal notes tied to your account.
+  </Card>
+  <Card title="Authentication" icon="lock" href="/features/authentication">
+    Secure per-user login and registration backed by MySQL.
+  </Card>
+</CardGroup>
 
-## Create beautiful pages
+## How it works
 
-Everything you need to create world-class documentation.
+<Steps>
+  <Step title="Install dependencies">
+    Install Python 3, PyQt5, mysql-connector-python, and requests. Set up a local MySQL database.
+  </Step>
+  <Step title="Configure the database password">
+    Create a `passwordBDD.txt` file in the project root containing your MySQL root password.
+  </Step>
+  <Step title="Launch the app">
+    Run `python main.py` to start the application. The database tables are created automatically on first run.
+  </Step>
+  <Step title="Register and log in">
+    Create an account from the login screen, then sign in to access all features.
+  </Step>
+</Steps>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Key features
 
-## Make your content agent ready
-
-Make your docs work for humans and AI agents alike.
-
-<Columns cols={2}>
-  <Card
-    title="Prompt component"
-    icon="robot"
-    href="/agent-ready/prompt"
-  >
-    Embed shareable AI prompts readers can copy or open in Cursor.
+<CardGroup cols={2}>
+  <Card title="Architecture overview" icon="sitemap" href="/architecture/overview">
+    Understand how modules, the database layer, and external APIs connect.
   </Card>
-  <Card
-    title="Visibility"
-    icon="eye"
-    href="/agent-ready/visibility"
-  >
-    Show different content to humans and agents reading your docs.
+  <Card title="Configuration reference" icon="gear" href="/reference/configuration">
+    All configuration options and required files explained.
   </Card>
-  <Card
-    title="Contextual menu"
-    icon="bolt"
-    href="/agent-ready/contextual"
-  >
-    Give readers one-click access to Claude, ChatGPT, Cursor, and more.
-  </Card>
-  <Card
-    title="AI coding tools"
-    icon="wand-magic-sparkles"
-    href="/ai-tools/claude-code"
-  >
-    Set up Claude Code, Cursor, or Windsurf with Mintlify's skill.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+</CardGroup>
